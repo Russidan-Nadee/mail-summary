@@ -80,6 +80,28 @@ def complete_auth(callback_url):
             f.write(flow.credentials.to_json())
         logging.info("Auth complete. token.json saved.")
         print("Auth complete. token.json saved.")
+        # Run refresh_service.py automatically after auth complete, only if not already running
+        import subprocess
+        import psutil
+        script_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'refresh_service.py')
+        lock_file = os.path.join(os.path.dirname(script_path), 'refresh_service.lock')
+        def is_refresh_running():
+            if not os.path.exists(lock_file):
+                return False
+            try:
+                with open(lock_file, 'r') as f:
+                    pid = int(f.read())
+                return psutil.pid_exists(pid)
+            except Exception:
+                return False
+        if is_refresh_running():
+            print("refresh_service.py is already running. Skipping auto-run.")
+        else:
+            try:
+                result = subprocess.run([sys.executable, script_path], check=True, capture_output=True, text=True)
+                print("\n[refresh_service.py output]\n" + result.stdout)
+            except subprocess.CalledProcessError as e:
+                print(f"[refresh_service.py error]: {e.stderr}")
     except Exception as e:
         logging.error(f"Failed to fetch token: {e}")
         sys.exit(1)
