@@ -49,6 +49,21 @@ If `token.json` does not exist, the agent MUST complete the following setup befo
 - The "error" page the user sees is normal — it just means no server is running at localhost, which is expected
 - Once `token.json` is saved, the agent auto-refreshes it when expired — no need to repeat setup
 
+## Configuration
+
+The agent uses a `config.yaml` file in the project root for runtime configuration. This file controls timezone, retry behavior, and logging level for all scripts.
+
+**Example `config.yaml`:**
+
+```yaml
+timezone: Asia/Bangkok    # Timezone for calendar events (e.g. Asia/Bangkok, UTC, Asia/Tokyo)
+max_retries: 5            # Max retry attempts for authentication and API calls
+log_level: INFO           # Logging level: DEBUG, INFO, WARNING, ERROR, CRITICAL
+```
+
+- If `config.yaml` is missing or a key is not set, the default will be used.
+- Changes to `config.yaml` take effect the next time you run a script.
+
 ## Input
 - User request (e.g., "Summarize today's important emails")
 

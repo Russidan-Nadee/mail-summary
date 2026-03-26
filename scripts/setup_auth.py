@@ -17,10 +17,17 @@ import hashlib
 import secrets
 import argparse
 import urllib.parse
+import logging
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from auth import SCOPES, find_credentials_file
 from google_auth_oauthlib.flow import InstalledAppFlow
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s %(levelname)s %(message)s',
+    handlers=[logging.StreamHandler()]
+)
 
 def generate_pkce():
     code_verifier = secrets.token_urlsafe(32)
@@ -45,6 +52,7 @@ def get_auth_url():
     with open('.auth_state.json', 'w') as f:
         json.dump({'code_verifier': code_verifier}, f)
 
+    logging.info(f"Generated auth URL: {auth_url}")
     print(auth_url)
 
 def complete_auth(callback_url):
@@ -56,7 +64,7 @@ def complete_auth(callback_url):
     params = urllib.parse.parse_qs(parsed.query)
     code = params.get('code', [None])[0]
     if not code:
-        print("ERROR: No authorization code found in URL.")
+        logging.error("No authorization code found in URL.")
         sys.exit(1)
 
     code_verifier = None
@@ -66,11 +74,15 @@ def complete_auth(callback_url):
         code_verifier = state_data.get('code_verifier')
         os.remove('.auth_state.json')
 
-    flow.fetch_token(code=code, code_verifier=code_verifier)
-
-    with open('token.json', 'w') as f:
-        f.write(flow.credentials.to_json())
-    print("Auth complete. token.json saved.")
+    try:
+        flow.fetch_token(code=code, code_verifier=code_verifier)
+        with open('token.json', 'w') as f:
+            f.write(flow.credentials.to_json())
+        logging.info("Auth complete. token.json saved.")
+        print("Auth complete. token.json saved.")
+    except Exception as e:
+        logging.error(f"Failed to fetch token: {e}")
+        sys.exit(1)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

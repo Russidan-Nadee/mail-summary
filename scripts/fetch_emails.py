@@ -4,6 +4,7 @@ import unicodedata
 import base64
 import sys
 import os
+import logging
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 from googleapiclient.discovery import build
@@ -14,6 +15,12 @@ from auth import auth_google
 
 MAX_EMAILS = 50
 MAX_BODY_LENGTH = 500
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s %(levelname)s %(message)s',
+    handlers=[logging.StreamHandler()]
+)
 
 def clean_text(text):
     text = html.unescape(text)
@@ -45,6 +52,7 @@ def fetch_emails(service, max_results=MAX_EMAILS):
     try:
         emails = []
         next_page_token = None
+        logging.info("Fetching emails from Gmail API...")
 
         while len(emails) < max_results:
             batch_size = min(max_results - len(emails), 100)
@@ -56,6 +64,7 @@ def fetch_emails(service, max_results=MAX_EMAILS):
             ).execute()
 
             messages = results.get('messages', [])
+            logging.info(f"Fetched {len(messages)} message headers.")
             for msg in messages:
                 msg_data = service.users().messages().get(userId='me', id=msg['id'], format='full').execute()
                 headers = msg_data['payload']['headers']
@@ -68,15 +77,17 @@ def fetch_emails(service, max_results=MAX_EMAILS):
                 if len(body) > MAX_BODY_LENGTH:
                     body = body[:MAX_BODY_LENGTH] + '...'
                 emails.append({'subject': subject, 'from': sender, 'date': date, 'body': body})
+                logging.info(f"Email: from={sender}, subject={subject}, date={date}")
 
             next_page_token = results.get('nextPageToken')
             if not next_page_token:
                 break
 
+        logging.info(f"Total emails fetched: {len(emails)}")
         return emails
 
     except HttpError as error:
-        print(f'An error occurred: {error}')
+        logging.error(f'An error occurred: {error}')
         return []
 
 if __name__ == '__main__':

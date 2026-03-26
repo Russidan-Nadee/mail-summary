@@ -33,7 +33,7 @@ clawhub install gmail-daily-briefing
 Manual:
 
 ```
-git clone https://github.com/Russidan-Nadee/gmail-daily-briefing.git ~/.clawdbot/skills/gmail-daily-briefing
+git clone https://github.com/Russidan-Nadee/gmail-daily-briefing.git ~/.openclaw/workspace/skills/gmail-daily-briefing
 ```
 
 ## Setup Instructions (First-Time Only)
@@ -73,6 +73,21 @@ git clone https://github.com/Russidan-Nadee/gmail-daily-briefing.git ~/.clawdbot
 The agent will confirm: *"Auth complete. I can now access your Gmail and Google Calendar."*
 
 From now on just say: **"Summarize today's important emails"**
+
+## Configuration
+
+This skill uses a `config.yaml` file in the project root for runtime configuration. You can edit this file to control timezone, retry behavior, and logging level.
+
+**Example `config.yaml`:**
+
+```yaml
+timezone: Asia/Bangkok    # Timezone for calendar events (e.g. Asia/Bangkok, UTC, Asia/Tokyo)
+max_retries: 5            # Max retry attempts for authentication and API calls
+log_level: INFO           # Logging level: DEBUG, INFO, WARNING, ERROR, CRITICAL
+```
+
+- If `config.yaml` is missing or a key is not set, the default will be used.
+- Changes to `config.yaml` take effect the next time you run a script.
 
 ## Agent Instructions
 

@@ -15,9 +15,7 @@ An AI agent skill that reads your Gmail, ranks emails by importance, summarizes 
 - Python 3.x
 - [OpenClaw](https://openclaw.ai/) agent
 
-## Setup Before First Use
-
-Before running any script, ensure the Python environment is ready:
+Install Python dependencies:
 
 ```bash
 cd ~/.openclaw/workspace/skills/gmail-daily-briefing
