@@ -1,22 +1,7 @@
 ---
 name: mail-summary
 description: Fetch Gmail emails from the last 24h, rank by importance, summarize into bullet points, and auto-create Google Calendar events for detected meetings.
-metadata:
-  openclaw:
-    requires:
-      bins:
-        - python
-      files:
-        - token.json
----
-metadata:
-  openclaw:
-    requires:
-      bins:
-        - python
-      files:
-        - token.json
----
+
 
 # Email & Calendar Assistant Skill
 

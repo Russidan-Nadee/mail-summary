@@ -20,7 +20,7 @@ import urllib.parse
 import logging
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from auth import SCOPES, find_credentials_file
+from auth import SCOPES, find_credentials_file, CREDENTIALS_DIR
 from google_auth_oauthlib.flow import InstalledAppFlow
 
 logging.basicConfig(
@@ -76,7 +76,9 @@ def complete_auth(callback_url):
 
     try:
         flow.fetch_token(code=code, code_verifier=code_verifier)
-        with open('token.json', 'w') as f:
+        token_path = os.path.join(CREDENTIALS_DIR, 'token.json')
+        os.makedirs(CREDENTIALS_DIR, exist_ok=True)
+        with open(token_path, 'w') as f:
             f.write(flow.credentials.to_json())
         logging.info("Auth complete. token.json saved.")
         print("Auth complete. token.json saved.")

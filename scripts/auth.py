@@ -1,12 +1,15 @@
 
 
-import os.path
+import os
 import glob
 import logging
 import yaml
 import json
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
+
+# Credentials location (outside skill folder)
+CREDENTIALS_DIR = os.path.expanduser('~/.openclaw/config/mail-summary')
 def get_config():
     config_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'config.yaml')
     try:
@@ -32,13 +35,15 @@ SCOPES = [
 ]
 
 def find_credentials_file():
-    if os.path.exists('credentials.json'):
-        return 'credentials.json'
-    matches = glob.glob('client_secret_*.json')
+    cred_path = os.path.join(CREDENTIALS_DIR, 'credentials.json')
+    if os.path.exists(cred_path):
+        return cred_path
+    matches = glob.glob(os.path.join(CREDENTIALS_DIR, 'client_secret_*.json'))
     if matches:
         return matches[0]
     raise FileNotFoundError(
-        "No credentials file found. Please place credentials.json or client_secret_*.json in the project root."
+        f"No credentials file found in {CREDENTIALS_DIR}. "
+        "Please place credentials.json or client_secret_*.json there."
     )
 
 def save_checkpoint(state, filename=".auth_checkpoint.json"):
@@ -52,27 +57,28 @@ def save_checkpoint(state, filename=".auth_checkpoint.json"):
 def auth_google():
     retry_count = 0
     last_error = None
+    token_path = os.path.join(CREDENTIALS_DIR, 'token.json')
     while retry_count < MAX_RETRIES:
         try:
-            if not os.path.exists('token.json'):
+            if not os.path.exists(token_path):
                 raise FileNotFoundError(
-                    "token.json not found. Please complete the auth setup first:\n"
+                    f"token.json not found in {CREDENTIALS_DIR}. Please complete the auth setup first:\n"
                     "  Step 1: python scripts/setup_auth.py\n"
                     "          → Send the printed URL to the user to open in their browser\n"
                     "  Step 2: python scripts/setup_auth.py --callback \"<redirect URL from browser>\"\n"
                     "          → This saves token.json"
                 )
 
-            creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+            creds = Credentials.from_authorized_user_file(token_path, SCOPES)
 
             if not creds.valid:
                 if creds.expired and creds.refresh_token:
                     creds.refresh(Request())
-                    with open('token.json', 'w') as token:
+                    with open(token_path, 'w') as token:
                         token.write(creds.to_json())
                 else:
                     raise ValueError(
-                        "token.json is invalid or expired without a refresh token.\n"
+                        f"token.json is invalid or expired without a refresh token in {CREDENTIALS_DIR}.\n"
                         "Please re-run the auth setup:\n"
                         "  Step 1: python scripts/setup_auth.py\n"
                         "  Step 2: python scripts/setup_auth.py --callback \"<redirect URL from browser>\""

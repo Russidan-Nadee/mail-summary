@@ -1,8 +1,0 @@
-__pycache__/
-*.pyc
-*.pyo
-.git/
-token.json
-credentials.json
-client_secret_*.json
-.env
